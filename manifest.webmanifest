@@ -1,0 +1,52 @@
+{
+  "name": "MITER — Farmer's Digital Companion",
+  "short_name": "MITER",
+  "description": "Weather, rainfall alerts and water-saving irrigation advice for smallholder farmers. Works offline, in Arabic and English.",
+  "id": "/",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B3B36",
+  "theme_color": "#0B6E6E",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": [
+    "agriculture",
+    "weather",
+    "utilities",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Irrigation advice",
+      "short_name": "Water",
+      "url": "./index.html#water"
+    },
+    {
+      "name": "Ask AI Yacoup",
+      "short_name": "Yacoup",
+      "url": "./index.html#assistant"
+    }
+  ]
+}

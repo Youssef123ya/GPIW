@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MITER</title>
+<meta name="description" content="Weather, rainfall alerts and water-saving irrigation advice for smallholder farmers. Works offline, in Arabic and English.">
+<meta name="theme-color" content="#0B6E6E">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="stylesheet" href="css/app.css">
+<script>
+/* Self-heal after an update.
+ *
+ * An earlier build cached its files under a different name. Because
+ * caches.match() searches every cache in the origin, those stale copies could
+ * keep winning for ever and the app would never visibly update. This block runs
+ * from index.html, which is always fetched over the network on a navigation, so
+ * it is the one piece of code a stale cache cannot hide. If the build stamp does
+ * not match, it clears every cache and worker once and reloads.
+ */
+(function () {
+  var BUILD = '1.3.0';
+  try {
+    if (localStorage.getItem('miter/build') === BUILD) return;
+    if (!('serviceWorker' in navigator)) { localStorage.setItem('miter/build', BUILD); return; }
+    Promise.all([
+      navigator.serviceWorker.getRegistrations()
+        .then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); })
+        .catch(function () {}),
+      (window.caches
+        ? caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); }) ); })
+        : Promise.resolve()).catch(function () {})
+    ]).then(function () {
+      // Stamp before reloading, so this can never become a refresh loop.
+      localStorage.setItem('miter/build', BUILD);
+      location.reload();
+    });
+  } catch (e) { /* storage blocked: nothing cached to clean up either */ }
+})();
+</script>
+</head>
+<body>
+
+<!-- First run: pick a language, then a place. Nothing else is asked for. -->
+<div id="onboard" class="onboard" hidden>
+  <div class="onboard-inner">
+    <div class="brand-big">
+      <span class="brand-mark">🌧️</span>
+      <h1 data-i18n="appName">MITER</h1>
+      <p class="muted" data-i18n="tagline">A farmer's digital companion</p>
+    </div>
+
+    <section id="step-lang" class="onboard-step">
+      <h2 data-i18n="language">Language</h2>
+      <div id="lang-grid" class="lang-grid"></div>
+    </section>
+
+    <section id="step-place" class="onboard-step" hidden>
+      <h2 data-i18n="locationSet">Location</h2>
+      <button id="gps-btn" class="btn btn-lg btn-primary">
+        <span aria-hidden="true">📍</span> <span data-i18n="useGps">Use my location</span>
+      </button>
+      <div class="or"></div>
+      <div class="field-row">
+        <input id="place-input" class="input input-lg" type="search" autocomplete="off"
+               data-i18n-placeholder="searchPlace" placeholder="Search your village or town">
+      </div>
+      <div id="place-results" class="place-results"></div>
+    </section>
+  </div>
+</div>
+
+<header class="app-bar">
+  <div class="app-bar-main">
+    <button id="place-btn" class="place-btn" type="button">
+      <span aria-hidden="true">📍</span>
+      <span id="place-label">—</span>
+      <span class="chev" aria-hidden="true">▾</span>
+    </button>
+    <div class="app-bar-right">
+      <span id="net-pill" class="pill">—</span>
+      <button id="lang-btn" class="lang-btn" type="button" aria-label="Language">EN</button>
+    </div>
+  </div>
+  <div id="stale-bar" class="stale-bar" hidden></div>
+</header>
+
+<main id="main">
+  <section id="tab-today" class="tab" data-tab="today"></section>
+  <section id="tab-water" class="tab" data-tab="water" hidden></section>
+  <section id="tab-assistant" class="tab" data-tab="assistant" hidden></section>
+  <section id="tab-settings" class="tab" data-tab="settings" hidden></section>
+</main>
+
+<nav class="tabbar" role="tablist">
+  <button class="tabbtn is-active" data-goto="today" role="tab" aria-selected="true">
+    <span class="tabicon" aria-hidden="true">🌤️</span><span data-i18n="navToday">Today</span>
+  </button>
+  <button class="tabbtn" data-goto="water" role="tab" aria-selected="false">
+    <span class="tabicon" aria-hidden="true">💧</span><span data-i18n="navWater">Water</span>
+  </button>
+  <button class="tabbtn" data-goto="assistant" role="tab" aria-selected="false">
+    <span class="tabicon" aria-hidden="true">🗣️</span><span data-i18n="navAssistant">Yacoup</span>
+  </button>
+  <button class="tabbtn" data-goto="settings" role="tab" aria-selected="false">
+    <span class="tabicon" aria-hidden="true">⚙️</span><span data-i18n="navSettings">Settings</span>
+  </button>
+</nav>
+
+<!-- Add / edit a field -->
+<dialog id="field-dialog" class="sheet">
+  <form id="field-form" method="dialog">
+    <header class="sheet-head">
+      <h2 id="field-dialog-title" data-i18n="addField">Add a field</h2>
+      <button type="button" class="icon-btn" data-close aria-label="Close">✕</button>
+    </header>
+    <div class="sheet-body">
+      <label class="lbl" for="f-name" data-i18n="fieldName">Field name</label>
+      <input id="f-name" name="name" class="input input-lg" maxlength="30" autocomplete="off">
+
+      <label class="lbl" for="f-crop" data-i18n="crop">Crop</label>
+      <select id="f-crop" name="crop" class="input input-lg"></select>
+
+      <label class="lbl" for="f-sowing" data-i18n="sowingDate">Sowing date</label>
+      <input id="f-sowing" name="sowing" class="input input-lg" type="date" required>
+
+      <label class="lbl" for="f-area" data-i18n="area">Area (hectare)</label>
+      <input id="f-area" name="area" class="input input-lg" type="number" step="0.05" min="0.05" value="0.4" inputmode="decimal">
+
+      <label class="lbl" for="f-soil" data-i18n="soil">Soil type</label>
+      <select id="f-soil" name="soil" class="input input-lg"></select>
+
+      <label class="lbl" for="f-method" data-i18n="method">Irrigation method</label>
+      <select id="f-method" name="method" class="input input-lg"></select>
+
+      <label id="awd-row" class="switch" hidden>
+        <input id="f-awd" name="awd" type="checkbox" checked>
+        <span data-i18n="useAwd">Use Alternate Wetting &amp; Drying</span>
+      </label>
+    </div>
+    <footer class="sheet-foot">
+      <button type="button" class="btn btn-ghost" data-close data-i18n="cancel">Cancel</button>
+      <button type="submit" class="btn btn-primary btn-lg" data-i18n="save">Save</button>
+    </footer>
+  </form>
+</dialog>
+
+<!-- Change place from the header -->
+<dialog id="place-dialog" class="sheet">
+  <header class="sheet-head">
+    <h2 data-i18n="locationSet">Location</h2>
+    <button type="button" class="icon-btn" data-close aria-label="Close">✕</button>
+  </header>
+  <div class="sheet-body">
+    <button id="gps-btn2" class="btn btn-lg btn-primary full">
+      <span aria-hidden="true">📍</span> <span data-i18n="useGps">Use my location</span>
+    </button>
+    <input id="place-input2" class="input input-lg" type="search" autocomplete="off"
+           data-i18n-placeholder="searchPlace" placeholder="Search your village or town">
+    <div id="place-results2" class="place-results"></div>
+  </div>
+</dialog>
+
+<div id="toast" class="toast" hidden></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

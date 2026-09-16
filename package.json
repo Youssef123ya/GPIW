@@ -1,0 +1,16 @@
+{
+  "name": "miter",
+  "version": "1.3.0",
+  "description": "MITER - an offline-first, bilingual (Arabic/English) AI irrigation companion for smallholder farmers.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server/serve.mjs",
+    "dev": "node server/serve.mjs",
+    "icons": "node tools/make-icons.mjs",
+    "test": "node tools/test.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
