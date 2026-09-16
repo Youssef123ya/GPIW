@@ -121,10 +121,22 @@ between them is the water that watching the forecast actually bought. The
 counterfactual is stated on the card, because a saving without a stated
 comparison is just a number.
 
-> **Calibration.** A 0.4 ha wheat plot on loam with an electric pump comes out at
-> roughly 545 m³ and about 900 currency units per irrigation; the same field under
-> drip needs about 40% less pumped water. Plot size, pump output, tariff and the
-> currency symbol are all set in Settings.
+> **Calibration.** These numbers come out of the engine, not out of a brochure.
+> A 0.4 ha wheat plot on loam, 75 days at ET₀ 5 mm/day, 10 L/s pump at 120 per hour:
+>
+> | | |
+> |---|---|
+> | One flood application after 60 rainless days | 75 mm net → 136 mm gross → **545 m³**, 15.2 pump-hours, ≈1,820 currency units |
+> | Season pumped water under flood | 367 mm = 1,467 m³ |
+> | The same season under drip | 167 mm = 667 m³ — **55% less** |
+>
+> The drip comparison is seasonal on purpose, because that is the only fair one.
+> Its advantage is partly application efficiency (0.90 against flood's 0.55) and
+> partly a smaller per-event ceiling that stops water going below the root zone.
+> Compare single applications instead and the gap looks far larger than it is —
+> the two methods are not doing the same amount of work in one pass.
+>
+> Plot size, pump output, tariff and the currency symbol are all set in Settings.
 
 ---
 
